@@ -1,0 +1,5 @@
+$ py detect_functiions.py 
+  File "detect_functiions.py", line 21
+    print(f"\u26a0\ufe0f Skipping {file_path} due to parsing error: {e}")
+                                                                 ^
+SyntaxError: invalid syntax
