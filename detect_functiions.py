@@ -20,21 +20,21 @@ def list_functions_in_repo(repo_path):
                                 "function": item.name
                             })
                 except (SyntaxError, UnicodeDecodeError) as e:
-                    print(u"\u26A0 Skipping {} due to parsing error: {}".format(file_path, e))
+                    print(u"Skipping {} due to parsing error: {}".format(file_path, e))
 
     return functions
 
 if __name__ == "__main__":
-    base_dir = os.path.join(os.getcwd(), "app")  # Automatically points to ./app
+    base_dir = os.path.join(os.getcwd(), "app")
     if not os.path.exists(base_dir):
-        print("❌ The 'app' folder was not found in the current directory.")
+        print("The 'app' folder was not found in the current directory.")
         sys.exit(1)
 
     results = list_functions_in_repo(base_dir)
 
     if results:
-        print("✅ Functions found in 'app' and its subfolders:")
+        print("Functions found in 'app' and subfolders:")
         for func in results:
             print("{} → {}".format(func["file"], func["function"]))
     else:
-        print("❌ No functions found.")
+        print("No functions found.")
