@@ -53,7 +53,6 @@ def log_crash(info, data, error):
     with open(LOG_FILE, "a", encoding="utf-8") as f:
         f.write(json.dumps(crash) + "\n")
 
-    # Save crashing input to corpus
     if not os.path.exists(CORPUS_DIR):
         os.makedirs(CORPUS_DIR)
     ts = int(time.time() * 1000)
@@ -61,10 +60,15 @@ def log_crash(info, data, error):
         f.write(data)
 
 def TestOneInput(data):
+    try:
+        decoded = data.decode("utf-8", errors="ignore")
+    except Exception:
+        return
+
     for target in targets:
         try:
             start = time.perf_counter()
-            target["func"](data)
+            target["func"](decoded)
             elapsed = time.perf_counter() - start
             if elapsed > 0.5:
                 log_crash(target["info"], data, f"⚠️ Slow execution: {elapsed:.3f}s")
@@ -78,5 +82,7 @@ if __name__ == "__main__":
 
     targets = build_targets()
     print("🔬 Fuzzing {} functions using corpus '{}'...".format(len(targets), CORPUS_DIR))
-    atheris.Setup([sys.argv[0], CORPUS_DIR], TestOneInput, enable_python_coverage=True)
+
+    # 🔧 Pass all CLI flags and corpus path to Atheris
+    atheris.Setup(sys.argv + [CORPUS_DIR], TestOneInput, enable_python_coverage=True)
     atheris.Fuzz()
