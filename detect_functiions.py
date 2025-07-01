@@ -1,5 +1,6 @@
 import os
 import ast
+import sys
 
 def list_functions_in_repo(repo_path):
     functions = []
@@ -9,26 +10,31 @@ def list_functions_in_repo(repo_path):
             if file.endswith(".py"):
                 file_path = os.path.join(root, file)
                 try:
-                    with open(file_path, "r", encoding="utf-8") as f:
-                        node = ast.parse(f.read(), filename=file_path)
-                        for item in ast.walk(node):
-                            if isinstance(item, ast.FunctionDef):
-                                functions.append({
-                                    "file": os.path.relpath(file_path, repo_path),
-                                    "function": item.name
-                                })
+                    with open(file_path, "r") as f:
+                        source = f.read()
+                    node = ast.parse(source, filename=file_path)
+                    for item in ast.walk(node):
+                        if isinstance(item, ast.FunctionDef):
+                            functions.append({
+                                "file": os.path.relpath(file_path, repo_path),
+                                "function": item.name
+                            })
                 except (SyntaxError, UnicodeDecodeError) as e:
-                    print(f"⚠️ Skipping {file_path} due to parsing error: {e}")
+                    print(u"\u26A0 Skipping {} due to parsing error: {}".format(file_path, e))
 
     return functions
 
-# Example usage
-repo_directory = os.path.join(os.getcwd(), "app")  # Adjusts to current working directory + /app
-functions = list_functions_in_repo(repo_directory)
+if __name__ == "__main__":
+    base_dir = os.path.join(os.getcwd(), "app")  # Automatically points to ./app
+    if not os.path.exists(base_dir):
+        print("❌ The 'app' folder was not found in the current directory.")
+        sys.exit(1)
 
-if functions:
-    print("✅ Functions found:")
-    for func in functions:
-        print(f"{func['file']} → {func['function']}")
-else:
-    print("❌ No functions found in the specified folder.")
+    results = list_functions_in_repo(base_dir)
+
+    if results:
+        print("✅ Functions found in 'app' and its subfolders:")
+        for func in results:
+            print("{} → {}".format(func["file"], func["function"]))
+    else:
+        print("❌ No functions found.")
