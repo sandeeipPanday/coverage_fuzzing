@@ -1,10 +1,9 @@
 import os
 import ast
-import sys
+import json
 
 def list_functions_in_repo(repo_path):
     functions = []
-
     for root, _, files in os.walk(repo_path):
         for file in files:
             if file.endswith(".py"):
@@ -21,20 +20,14 @@ def list_functions_in_repo(repo_path):
                             })
                 except (SyntaxError, UnicodeDecodeError) as e:
                     print("Skipping {} due to parsing error: {}".format(file_path, e))
-
     return functions
 
 if __name__ == "__main__":
-    base_dir = os.path.join(os.getcwd(), "api")  # Now scanning 'api' folder
-    if not os.path.exists(base_dir):
-        print("The 'api' folder was not found in the current directory.")
-        sys.exit(1)
-
+    base_dir = os.path.join(os.getcwd(), "api")
     results = list_functions_in_repo(base_dir)
-
     if results:
-        print("Functions found in 'api' and subfolders:")
-        for func in results:
-            print("{} -> {}".format(func["file"], func["function"]))
+        with open("function_list.json", "w") as f:
+            json.dump(results, f, indent=2)
+        print("✅ Found {} functions. Saved to function_list.json".format(len(results)))
     else:
-        print("No functions found.")
+        print("❌ No functions found.")
