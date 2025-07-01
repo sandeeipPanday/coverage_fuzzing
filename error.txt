@@ -1,20 +1,6 @@
 Traceback (most recent call last):
-  File "detect_functiions.py", line 15, in list_functions_in_repo
-    node = ast.parse(source, filename=file_path)
-  File "C:\Python33\lib\ast.py", line 35, in parse
-    return compile(source, filename, mode, PyCF_ONLY_AST)
-  File "C:\Users\q1063232\projects\gpt-proposal\gpt-box-newfile-idp\api\chatbot_api\main.py", line 28
-    async def health_ep():
-        ^
-SyntaxError: invalid syntax
-
-During handling of the above exception, another exception occurred:
-
-Traceback (most recent call last):
-  File "detect_functiions.py", line 33, in <module>
-    results = list_functions_in_repo(base_dir)
-  File "detect_functiions.py", line 23, in list_functions_in_repo
-    print(u"\u26A0 Skipping {} due to parsing error: {}".format(file_path, e))
+  File "detect_functiions.py", line 38, in <module>
+    print("{} \u2192 {}".format(func["file"], func["function"]))
   File "C:\Python33\lib\encodings\cp437.py", line 19, in encode
     return codecs.charmap_encode(input,self.errors,encoding_map)[0]
-UnicodeEncodeError: 'charmap' codec can't encode character '\u26a0' in position 0: character maps to <undefined>    
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2192' in position 8: character maps to <undefined>   
