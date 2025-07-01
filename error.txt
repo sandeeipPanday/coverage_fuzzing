@@ -1,2 +1,2 @@
-ERROR:uvicorn:Error getting token: Invalid URL 'None': No scheme supplied. Perhaps you meant https://None?
-ERROR:uvicorn:Error uploading file: 'NoneType' object is not subscriptable
+INFO: -max_len is not provided; libFuzzer will not generate inputs larger than 4096 bytes
+INFO: A corpus is not provided, starting from an empty corpus
