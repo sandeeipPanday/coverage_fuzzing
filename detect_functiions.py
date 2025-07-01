@@ -25,15 +25,15 @@ def list_functions_in_repo(repo_path):
     return functions
 
 if __name__ == "__main__":
-    base_dir = os.path.join(os.getcwd(), "app")
+    base_dir = os.path.join(os.getcwd(), "api")  # 🔄 Now scanning the 'api' folder
     if not os.path.exists(base_dir):
-        print("The 'app' folder was not found in the current directory.")
+        print("The 'api' folder was not found in the current directory.")
         sys.exit(1)
 
     results = list_functions_in_repo(base_dir)
 
     if results:
-        print("Functions found in 'app' and subfolders:")
+        print("Functions found in 'api' and subfolders:")
         for func in results:
             print("{} → {}".format(func["file"], func["function"]))
     else:
