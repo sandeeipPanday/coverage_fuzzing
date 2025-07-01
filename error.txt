@@ -1,6 +1,2 @@
-Traceback (most recent call last):
-  File "detect_functiions.py", line 38, in <module>
-    print("{} \u2192 {}".format(func["file"], func["function"]))
-  File "C:\Python33\lib\encodings\cp437.py", line 19, in encode
-    return codecs.charmap_encode(input,self.errors,encoding_map)[0]
-UnicodeEncodeError: 'charmap' codec can't encode character '\u2192' in position 8: character maps to <undefined>   
+ERROR:uvicorn:Error getting token: Invalid URL 'None': No scheme supplied. Perhaps you meant https://None?
+ERROR:uvicorn:Error uploading file: 'NoneType' object is not subscriptable
