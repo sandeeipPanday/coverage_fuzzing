@@ -10,7 +10,12 @@ LOG_FILE = "fuzz_log.jsonl"
 FUNC_LIST_FILE = "function_list.json"
 CORPUS_DIR = "corpus"
 
+MAX_EXECUTIONS = 5000
+MAX_CORPUS_FILES = 1000
+MAX_LEN = 1024  # Limit fuzzed input size (bytes)
+
 EXCLUDED_PREFIXES = ["upload_", "send_file", "uploadfile", "upload"]
+exec_counter = [0]
 
 def load_function(file_path, function_name):
     try:
@@ -55,11 +60,21 @@ def log_crash(info, data, error):
 
     if not os.path.exists(CORPUS_DIR):
         os.makedirs(CORPUS_DIR)
+    if len(os.listdir(CORPUS_DIR)) >= MAX_CORPUS_FILES:
+        return
     ts = int(time.time() * 1000)
     with open(os.path.join(CORPUS_DIR, f"crash_{ts}.input"), "wb") as f:
         f.write(data)
 
 def TestOneInput(data):
+    exec_counter[0] += 1
+    if exec_counter[0] > MAX_EXECUTIONS:
+        print(f"\n🛑 Stopping after {MAX_EXECUTIONS} fuzzing attempts.")
+        os._exit(0)
+
+    if len(data) > MAX_LEN:
+        return
+
     try:
         decoded = data.decode("utf-8", errors="ignore")
     except Exception:
@@ -81,8 +96,7 @@ if __name__ == "__main__":
         os.makedirs(CORPUS_DIR)
 
     targets = build_targets()
-    print("🔬 Fuzzing {} functions using corpus '{}'...".format(len(targets), CORPUS_DIR))
+    print(f"🔬 Fuzzing {len(targets)} functions with max_len={MAX_LEN}, max_runs={MAX_EXECUTIONS}, max_corpus_files={MAX_CORPUS_FILES}")
 
-    # 🔧 Pass all CLI flags and corpus path to Atheris
-    atheris.Setup(sys.argv + [CORPUS_DIR], TestOneInput, enable_python_coverage=True)
+    atheris.Setup([sys.argv[0], CORPUS_DIR], TestOneInput, enable_python_coverage=True)
     atheris.Fuzz()
