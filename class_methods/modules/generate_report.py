@@ -1,3 +1,6 @@
+import sys, os
+script_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.abspath(os.path.join(script_dir, "..")))
 from modules.bootstrap import install_dependencies
 install_dependencies()
 
@@ -24,9 +27,9 @@ def summary(logs):
 def draw_pie(logs):
     fail = len(logs)
     total = 5000
-    pass_ = total - fail
+    passed = total - fail
     plt.figure()
-    plt.pie([fail, pass_], labels=["Fail", "Pass"], colors=["#FF4C4C", "#4CAF50"],
+    plt.pie([fail, passed], labels=["Fail", "Pass"], colors=["#FF4C4C", "#4CAF50"],
             autopct='%1.1f%%', startangle=90)
     plt.title("Fuzzing Results")
     plt.axis('equal')
@@ -36,13 +39,26 @@ def draw_pie(logs):
 def write_html(logs, stats):
     rows = ""
     for k, s in stats.items():
-        parts = k.split("::")
+        f, c, m = k.split("::")
         success = s["total"] - s["fail"]
         pct = 100 * success / s["total"] if s["total"] else 0
-        rows += f"<tr><td>{parts[0]}</td><td>{parts[1]}</td><td>{parts[2]}</td><td>{success}/{s['total']}</td><td>{pct:.1f}%</td></tr>\n"
+        rows += f"<tr><td>{f}</td><td>{c}</td><td>{m}</td><td>{success}/{s['total']}</td><td>{pct:.1f}%</td></tr>\n"
 
     html = f"""<html><head><title>Fuzz Report</title>
-    <style>table{{border-collapse:collapse;width:100%}}td,th{{border:1px solid #ccc;padding:8px}}</style>
+    <style>body{{font-family:sans-serif}}table{{border-collapse:collapse;width:100%}}td,th{{border:1px solid #ccc;padding:8px}}</style>
     </head><body>
     <h2>🐞 Fuzzing Results Summary</h2>
-    <img src="{
+    <p>Generated: {datetime.now().strftime("%Y-%m-%d %H:%M:%S")}</p>
+    <img src="{OUTPUT_PIE}" width="300"><br><br>
+    <table><tr><th>File</th><th>Class</th><th>Method</th><th>Pass / Total</th><th>Success %</th></tr>
+    {rows}</table></body></html>
+    """
+    with open(OUTPUT_HTML, "w") as f:
+        f.write(html)
+    print(f"✅ Report saved to {OUTPUT_HTML}")
+
+if __name__ == "__main__":
+    logs = load_logs()
+    stats = summary(logs)
+    draw_pie(logs)
+    write_html(logs, stats)
