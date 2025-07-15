@@ -1,4 +1,10 @@
-import json, importlib.util, os, time, traceback
+import sys, os
+script_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.abspath(os.path.join(script_dir, "..")))
+from modules.bootstrap import install_dependencies
+install_dependencies()
+
+import json, importlib.util, time, traceback
 
 EXCLUDED_PREFIXES = ["upload_", "send_file", "uploadfile", "upload"]
 
