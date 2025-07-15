@@ -1,2 +1,2 @@
-    from modules.bootstrap import install_dependencies
-ModuleNotFoundError: No module named 'modules.bootstrap'; 'modules' is not a package
+File "/usr/local/lib/python3.10/dist-packages/matplotlib/axes/_axes.py", line 3360, in pie
+    raise ValueError("Wedge sizes 'x' must be non negative values")
