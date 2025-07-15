@@ -1,18 +1,17 @@
-import os, subprocess, sys
-
-BASE = os.path.dirname(os.path.abspath(__file__))
-MODULES = os.path.join(BASE, "modules")
+import sys, os
+from modules.bootstrap import install_dependencies
+install_dependencies()
 
 def run(script):
-    subprocess.run([sys.executable, os.path.join(MODULES, script)])
+    os.system(f"python modules/{script}")
 
 def menu():
-    print("\n🧪 Fuzzing CLI Menu")
+    print("\n🧪 Fuzzing CLI")
     print("1. Detect class methods in api/")
-    print("2. Configure fuzz input types")
-    print("3. Run Atheris fuzzing")
-    print("4. Generate fuzzing report")
-    print("5. Run manual edge tests")
+    print("2. Configure fuzzing input types")
+    print("3. Run fuzzing tests")
+    print("4. Generate HTML + pie chart report")
+    print("5. Run manual edge-case tests")
     print("0. Exit")
 
 if __name__ == "__main__":
@@ -25,7 +24,7 @@ if __name__ == "__main__":
         elif choice == "4": run("generate_report.py")
         elif choice == "5": run("manual_edge_tests.py")
         elif choice == "0":
-            print("👋 Goodbye!")
+            print("👋 Exiting CLI.")
             break
         else:
-            print("⚠️ Invalid option.")
+            print("⚠️ Invalid selection.")
