@@ -1,3 +1,6 @@
+from modules.bootstrap import install_dependencies
+install_dependencies()
+
 import sys, os, atheris, importlib.util, json, traceback, time
 
 LOG_FILE = "fuzz_log.jsonl"
