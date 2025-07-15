@@ -1,9 +1,10 @@
+import sys, os
+script_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.abspath(os.path.join(script_dir, "..")))
 from modules.bootstrap import install_dependencies
 install_dependencies()
 
-import os
-import ast
-import json
+import ast, json
 
 def extract_class_methods(file_path, repo_path):
     class_methods = []
