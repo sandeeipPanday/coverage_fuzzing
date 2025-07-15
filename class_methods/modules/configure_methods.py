@@ -1,3 +1,6 @@
+from modules.bootstrap import install_dependencies
+install_dependencies()
+
 import json
 import os
 
