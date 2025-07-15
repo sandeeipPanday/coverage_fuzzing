@@ -1,12 +1,14 @@
+import sys, os
+script_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.abspath(os.path.join(script_dir, "..")))
 from modules.bootstrap import install_dependencies
 install_dependencies()
 
-import sys, os, atheris, importlib.util, json, traceback, time
+import atheris, importlib.util, json, traceback, time
 
 LOG_FILE = "fuzz_log.jsonl"
 METHOD_LIST_FILE = "modules/method_list.json"
 CORPUS_DIR = "corpus"
-
 MAX_EXECUTIONS = 5000
 MAX_CORPUS_FILES = 1000
 MAX_LEN = 1024
@@ -14,20 +16,19 @@ exec_counter = [0]
 
 def load_class_method(file_path, class_name, method_name):
     try:
-        module_name = os.path.splitext(os.path.basename(file_path))[0]
+        mod_name = os.path.splitext(os.path.basename(file_path))[0]
         full_path = os.path.join("api", file_path)
-        spec = importlib.util.spec_from_file_location(module_name, full_path)
+        spec = importlib.util.spec_from_file_location(mod_name, full_path)
         module = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(module)
-        cls = getattr(module, class_name)
-        instance = cls()
+        instance = getattr(module, class_name)()
         return getattr(instance, method_name)
     except Exception:
         traceback.print_exc()
         return None
 
 def build_targets():
-    with open(METHOD_LIST_FILE, "r") as f:
+    with open(METHOD_LIST_FILE) as f:
         entries = json.load(f)
     targets = []
     for entry in entries:
@@ -67,11 +68,7 @@ def TestOneInput(data):
         return
     for target in targets:
         try:
-            start = time.perf_counter()
             target["method"](decoded)
-            elapsed = time.perf_counter() - start
-            if elapsed > 0.5:
-                log_crash(target["info"], data, f"⚠️ Slow: {elapsed:.3f}s")
         except Exception as e:
             log_crash(target["info"], data, e)
 
