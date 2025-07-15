@@ -1,8 +1,2 @@
-INFO: -max_len is not provided; libFuzzer will not generate inputs larger than 4096 bytes
-INFO: A corpus is not provided, starting from an empty corpus
-
-WARNING: no interesting inputs were found so far. Is the code instrumented for coverage?
-This may also happen if the target rejected all inputs we tried so far
-#512    pulse  corp: 1/1b lim: 8 exec/s: 256 rss: 66Mb
-#1024   pulse  corp: 1/1b lim: 14 exec/s: 256 rss: 66Mb
-#2048   pulse  corp: 1/1b lim: 21 exec/s: 227 rss: 66Mb
+    from modules.bootstrap import install_dependencies
+ModuleNotFoundError: No module named 'modules.bootstrap'; 'modules' is not a package
