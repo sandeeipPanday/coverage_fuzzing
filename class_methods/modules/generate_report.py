@@ -1,3 +1,6 @@
+from modules.bootstrap import install_dependencies
+install_dependencies()
+
 import json, matplotlib.pyplot as plt
 from collections import defaultdict
 from datetime import datetime
@@ -41,3 +44,5 @@ def write_html(logs, stats):
     html = f"""<html><head><title>Fuzz Report</title>
     <style>table{{border-collapse:collapse;width:100%}}td,th{{border:1px solid #ccc;padding:8px}}</style>
     </head><body>
+    <h2>🐞 Fuzzing Results Summary</h2>
+    <img src="{
