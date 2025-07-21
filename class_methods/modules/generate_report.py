@@ -7,6 +7,7 @@ install_dependencies()
 import json, matplotlib.pyplot as plt
 from collections import defaultdict
 from datetime import datetime
+from html import escape
 
 INPUT_FILE = "fuzz_log.jsonl"
 OUTPUT_HTML = "fuzz_report.html"
@@ -19,23 +20,27 @@ def load_logs():
     with open(INPUT_FILE) as f:
         return [json.loads(line.strip()) for line in f if line.strip()]
 
-def summary(logs):
-    stats = defaultdict(lambda: {"total": 0, "fail": 0})
+def summarize(logs):
+    stats = defaultdict(lambda: {"pass": 0, "fail": 0, "errors": []})
     for log in logs:
         key = f"{log['file']}::{log['class']}::{log['method']}"
-        stats[key]["total"] += 1
-        stats[key]["fail"] += 1
+        if log.get("status") == "pass":
+            stats[key]["pass"] += 1
+        elif log.get("status") == "fail":
+            stats[key]["fail"] += 1
+            err_type = log.get("error", "")
+            stats[key]["errors"].append(f"{err_type[:200]}")
     return stats
 
-def draw_pie(fail, total):
-    if total <= 0:
-        print("⚠️ Total execution count is zero. Skipping pie chart.")
+def draw_pie(stats):
+    total_pass = sum(s["pass"] for s in stats.values())
+    total_fail = sum(s["fail"] for s in stats.values())
+    if total_pass + total_fail == 0:
+        print("⚠️ No data to generate pie chart.")
         return
-    fail = max(fail, 0)
-    passed = max(total - fail, 0)
     plt.figure()
     plt.pie(
-        [fail, passed],
+        [total_fail, total_pass],
         labels=["Fail", "Pass"],
         colors=["#FF4C4C", "#4CAF50"],
         autopct='%1.1f%%',
@@ -46,25 +51,32 @@ def draw_pie(fail, total):
     plt.savefig(OUTPUT_PIE)
     plt.close()
 
-def write_html(logs, stats, total):
+def write_html(stats):
     rows = ""
-    for k, s in stats.items():
-        f, c, m = k.split("::")
-        passed = s["total"] - s["fail"]
-        pct = 100 * passed / s["total"] if s["total"] > 0 else 0
-        rows += f"<tr><td>{f}</td><td>{c}</td><td>{m}</td><td>{passed}/{s['total']}</td><td>{pct:.1f}%</td></tr>\n"
+    for key, data in stats.items():
+        f, c, m = key.split("::")
+        total = data["pass"] + data["fail"]
+        pct = 100 * data["pass"] / total if total > 0 else 0
+        error_block = ""
+        if data["errors"]:
+            error_list = "".join(f"<li>{escape(err)}</li>" for err in data["errors"][:5])
+            error_block = f"<details><summary>Failure Reasons (first 5)</summary><ul>{error_list}</ul></details>"
+        rows += (
+            f"<tr><td>{escape(f)}</td><td>{escape(c)}</td><td>{escape(m)}</td>"
+            f"<td>{data['pass']} / {total}</td><td>{pct:.1f}%</td><td>{error_block}</td></tr>\n"
+        )
 
     generated = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     html = f"""<html><head><title>Fuzz Report</title>
-    <style>body{{font-family:sans-serif}}table{{border-collapse:collapse;width:100%}}td,th{{border:1px solid #ccc;padding:8px}}</style>
+    <style>body{{font-family:sans-serif}}table{{border-collapse:collapse;width:100%}}
+    td,th{{border:1px solid #ccc;padding:8px;vertical-align:top}}details{{margin-top:4px}}</style>
     </head><body>
     <h2>🐞 Fuzzing Results Summary</h2>
     <p><strong>Generated:</strong> {generated}</p>
-    <p><strong>Total Executions:</strong> {total}</p>
     <img src="{OUTPUT_PIE}" width="300"><br><br>
-    <table><tr><th>File</th><th>Class</th><th>Method</th><th>Pass / Total</th><th>Success %</th></tr>
-    {rows}</table></body></html>
-    """
+    <table><tr><th>File</th><th>Class</th><th>Method</th><th>Pass / Total</th><th>Success %</th><th>Failure Reasons</th></tr>
+    {rows}</table></body></html>"""
+
     with open(OUTPUT_HTML, "w") as f:
         f.write(html)
     print(f"✅ Report saved to {OUTPUT_HTML}")
@@ -75,8 +87,6 @@ if __name__ == "__main__":
         print("⚠️ No logs found. Skipping report.")
         sys.exit(0)
 
-    stats = summary(logs)
-    fail_count = len(logs)
-    total_executions = 5000  # You can adjust this if needed
-    draw_pie(fail_count, total_executions)
-    write_html(logs, stats, total_executions)
+    stats = summarize(logs)
+    draw_pie(stats)
+    write_html(stats)
