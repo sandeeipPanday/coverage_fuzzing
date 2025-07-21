@@ -1,6 +1,5 @@
 import sys, os
-script_dir = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.abspath(os.path.join(script_dir, "..")))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from modules.bootstrap import install_dependencies
 install_dependencies()
 
@@ -11,7 +10,6 @@ METHOD_LIST_FILE = "modules/method_list.json"
 CONFIG_FILE = "fuzz_config.json"
 CORPUS_DIR = "corpus"
 MAX_EXECUTIONS = 5000
-MAX_CORPUS_FILES = 1000
 MAX_LEN = 1024
 exec_counter = [0]
 
@@ -53,11 +51,11 @@ def mutate_input(data, input_type, seed=None):
         elif input_type == "bytes":
             return data
         elif input_type == "json":
-            import json as j
-            return j.loads(decoded)
+            import json5
+            return json5.loads(decoded)
         elif input_type == "custom" and seed:
             return seed.replace("FUZZ", decoded)
-        return decoded  # default: string
+        return decoded
     except Exception:
         return None
 
@@ -78,9 +76,8 @@ def log_event(info, data, error=None, status="fail"):
     with open(LOG_FILE, "a") as f:
         f.write(json.dumps(record) + "\n")
     if status == "fail":
-        if not os.path.exists(CORPUS_DIR):
-            os.makedirs(CORPUS_DIR)
-        if len(os.listdir(CORPUS_DIR)) < MAX_CORPUS_FILES:
+        os.makedirs(CORPUS_DIR, exist_ok=True)
+        if len(os.listdir(CORPUS_DIR)) < 1000:
             ts = int(time.time() * 1000)
             with open(os.path.join(CORPUS_DIR, f"crash_{ts}.input"), "wb") as f:
                 f.write(data)
