@@ -1,6 +1,5 @@
 import sys, os
-script_dir = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.abspath(os.path.join(script_dir, "..")))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from modules.bootstrap import install_dependencies
 install_dependencies()
 
@@ -28,8 +27,8 @@ def summarize(logs):
             stats[key]["pass"] += 1
         elif log.get("status") == "fail":
             stats[key]["fail"] += 1
-            err_type = log.get("error", "")
-            stats[key]["errors"].append(f"{err_type[:200]}")
+            if log.get("error"):
+                stats[key]["errors"].append(log["error"])
     return stats
 
 def draw_pie(stats):
@@ -60,23 +59,20 @@ def write_html(stats):
         error_block = ""
         if data["errors"]:
             error_list = "".join(f"<li>{escape(err)}</li>" for err in data["errors"][:5])
-            error_block = f"<details><summary>Failure Reasons (first 5)</summary><ul>{error_list}</ul></details>"
+            error_block = f"<details><summary>Failure Reasons</summary><ul>{error_list}</ul></details>"
         rows += (
             f"<tr><td>{escape(f)}</td><td>{escape(c)}</td><td>{escape(m)}</td>"
             f"<td>{data['pass']} / {total}</td><td>{pct:.1f}%</td><td>{error_block}</td></tr>\n"
         )
-
-    generated = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    ts = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     html = f"""<html><head><title>Fuzz Report</title>
     <style>body{{font-family:sans-serif}}table{{border-collapse:collapse;width:100%}}
-    td,th{{border:1px solid #ccc;padding:8px;vertical-align:top}}details{{margin-top:4px}}</style>
-    </head><body>
-    <h2>🐞 Fuzzing Results Summary</h2>
-    <p><strong>Generated:</strong> {generated}</p>
+    td,th{{border:1px solid #ccc;padding:8px;vertical-align:top}}details{{margin-top:4px}}</style></head>
+    <body><h2>🐞 Fuzzing Results Summary</h2>
+    <p><strong>Generated:</strong> {ts}</p>
     <img src="{OUTPUT_PIE}" width="300"><br><br>
     <table><tr><th>File</th><th>Class</th><th>Method</th><th>Pass / Total</th><th>Success %</th><th>Failure Reasons</th></tr>
     {rows}</table></body></html>"""
-
     with open(OUTPUT_HTML, "w") as f:
         f.write(html)
     print(f"✅ Report saved to {OUTPUT_HTML}")
@@ -86,7 +82,6 @@ if __name__ == "__main__":
     if not logs:
         print("⚠️ No logs found. Skipping report.")
         sys.exit(0)
-
     stats = summarize(logs)
     draw_pie(stats)
     write_html(stats)
