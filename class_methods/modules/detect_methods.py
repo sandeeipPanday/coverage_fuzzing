@@ -1,6 +1,5 @@
 import sys, os
-script_dir = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.abspath(os.path.join(script_dir, "..")))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from modules.bootstrap import install_dependencies
 install_dependencies()
 
@@ -31,8 +30,7 @@ def scan_repo(repo_path):
     for root, _, files in os.walk(repo_path):
         for file in files:
             if file.endswith(".py"):
-                full_path = os.path.join(root, file)
-                all_methods.extend(extract_class_methods(full_path, repo_path))
+                all_methods.extend(extract_class_methods(os.path.join(root, file), repo_path))
     return all_methods
 
 if __name__ == "__main__":
