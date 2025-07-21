@@ -5,7 +5,8 @@ import importlib
 REQUIRED_PACKAGES = [
     "atheris",
     "matplotlib",
-    "rich"
+    "rich",
+    "json5"
 ]
 
 def install_dependencies():
