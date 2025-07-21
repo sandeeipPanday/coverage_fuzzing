@@ -7,19 +7,21 @@ import ast, json
 
 EXCLUDE_KEYWORDS = [
     "decrypt",
-    "load_pem_private_key",
-    "load_key",
-    "get_private_key",
-    "sign",
-    "verify",
+    "password",
+    "auth",
+    "token",
+    "login",
+    "key",
+    "private",
     "ssl",
-    "certificate",
-    "private"
+    "certificate"
 ]
 
-def should_exclude(method_name):
-    method_name_lower = method_name.lower()
-    return any(kw in method_name_lower for kw in EXCLUDE_KEYWORDS)
+def should_exclude(method_name, args):
+    name = method_name.lower()
+    arg_names = [a.arg.lower() for a in args if isinstance(a, ast.arg)]
+    keywords_in_args = any(kw in arg for kw in EXCLUDE_KEYWORDS for arg in arg_names)
+    return any(kw in name for kw in EXCLUDE_KEYWORDS) or keywords_in_args
 
 def extract_class_methods(file_path, repo_path):
     class_methods = []
@@ -31,13 +33,15 @@ def extract_class_methods(file_path, repo_path):
         for node in tree.body:
             if isinstance(node, ast.ClassDef):
                 for item in node.body:
-                    if isinstance(item, ast.FunctionDef):
-                        if item.name != "__init__" and not should_exclude(item.name):
+                    if isinstance(item, ast.FunctionDef) and item.name != "__init__":
+                        if not should_exclude(item.name, item.args.args):
                             class_methods.append({
                                 "file": rel_path,
                                 "class": node.name,
                                 "method": item.name
                             })
+                        else:
+                            print(f"🔒 Skipped method needing auth: {rel_path}::{node.name}::{item.name}")
     except Exception as e:
         print(f"⚠️ Skipped {file_path}: {e}")
     return class_methods
@@ -47,8 +51,7 @@ def scan_repo(repo_path):
     for root, _, files in os.walk(repo_path):
         for file in files:
             if file.endswith(".py"):
-                full_path = os.path.join(root, file)
-                all_methods.extend(extract_class_methods(full_path, repo_path))
+                all_methods.extend(extract_class_methods(os.path.join(root, file), repo_path))
     return all_methods
 
 if __name__ == "__main__":
@@ -56,4 +59,4 @@ if __name__ == "__main__":
     results = scan_repo(base_dir)
     with open("modules/method_list.json", "w", encoding="utf-8") as f:
         json.dump(results, f, indent=2)
-    print(f"✅ Detected {len(results)} usable methods. Crypto/decryption methods excluded.")
+    print(f"✅ Saved {len(results)} fuzzable methods to method_list.json")
