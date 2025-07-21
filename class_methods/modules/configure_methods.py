@@ -1,6 +1,5 @@
 import sys, os
-script_dir = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.abspath(os.path.join(script_dir, "..")))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 from modules.bootstrap import install_dependencies
 install_dependencies()
 
@@ -28,8 +27,8 @@ def prompt_config():
     config = {}
     print("📋 Configure fuzzing input types per method.\n")
     for method in methods:
-        name = f"{method['file']}::{method['class']}::{method['method']}"
-        print(f"⚙️ {name}")
+        key = f"{method['file']}::{method['class']}::{method['method']}"
+        print(f"⚙️ {key}")
         for k, v in TYPES.items():
             print(f"   {k}. {v}")
         choice = ""
@@ -37,8 +36,8 @@ def prompt_config():
             choice = input("   Select [1-5]: ").strip()
         entry = {"input_type": TYPES[choice]}
         if TYPES[choice] == "custom":
-            entry["seed_input"] = input("   Example input string: ")
-        config[name] = entry
+            entry["seed_input"] = input("   Example input with 'FUZZ': ")
+        config[key] = entry
         print("✅ Saved.\n")
 
     with open(CONFIG_FILE, "w") as f:
